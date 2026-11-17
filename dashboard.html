@@ -1,0 +1,23 @@
+<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Dashboard · HydroLog</title><link rel="stylesheet" href="style.css"></head>
+<body><main><h1 id="jd"></h1><p class="m" id="sb"></p>
+<a class="b" href="air.html#baru">Tambah catatan air</a> <a class="b l" href="peta.html">Buka peta tanaman</a>
+<h2>Tanaman</h2><div class="g" id="st"></div>
+<h2>Air terakhir</h2><div class="g" id="wt"></div><div id="al"></div>
+<h2>Tren</h2><div class="g" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))"><div class="c"><b>pH</b><div id="c1"></div></div><div class="c"><b>PPM</b><div id="c2"></div></div><div class="c"><b>Suhu air (°C)</b><div id="c3"></div></div><div class="c"><b>Tinggi rata-rata (cm)</b><div id="c4"></div></div></div>
+<h2>Aktivitas terbaru</h2><div id="ak"></div></main>
+<script src="app.js"></script><script>
+head('dashboard');var d=need();if(d){var g=d.garden,p=Object.keys(d.plants).map(function(k){return d.plants[k]});
+$('jd').textContent=g.nama;$('sb').textContent=g.tanaman+' · '+g.sistem+' · umur '+umur(g.tgl)+' hari';
+function n(s){return p.filter(function(x){return x.status===s}).length}
+var aktif=p.length-n('kosong')-n('dipanen');
+$('st').innerHTML=[['Aktif',aktif],['Sehat',n('sehat')],['Waspada',n('waspada')],['Kritis',n('kritis')],['Dipanen',n('dipanen')]].map(function(x){return'<div class="c s"><b>'+x[1]+'</b>'+x[0]+'</div>'}).join('');
+var w=d.water.slice().sort(function(a,b){return a.tgl<b.tgl?-1:a.tgl>b.tgl?1:a.at-b.at}),l=w[w.length-1];
+$('wt').innerHTML=l?[['pH',l.ph],['PPM',l.ppm],['Suhu',l.suhu!==''?l.suhu+' °C':'-'],['Tanggal',fd(l.tgl)]].map(function(x){return'<div class="c s"><b>'+esc(x[1]===''?'-':x[1])+'</b>'+x[0]+'</div>'}).join(''):'<div class="c m">Belum ada catatan air.</div>';
+if(l)$('al').innerHTML=peringatan(l,d.th).map(function(x){return'<div class="c w">⚠ '+esc(x)+'</div>'}).join('');
+function sr(k){return w.filter(function(x){return x[k]!==''}).slice(-14).map(function(x){return{x:fd(x.tgl),y:+x[k]}})}
+chart('c1',sr('ph'),d.th.phMin,d.th.phMax);chart('c2',sr('ppm'),d.th.ppmMin,d.th.ppmMax);chart('c3',sr('suhu'),null,d.th.tMax);
+var by={};d.obs.forEach(function(o){if(o.tinggi!==''){(by[o.tgl]=by[o.tgl]||[]).push(+o.tinggi)}});
+chart('c4',Object.keys(by).sort().map(function(k){var a=by[k];return{x:fd(k),y:Math.round(a.reduce(function(s,v){return s+v},0)/a.length*10)/10}}));
+var ac=d.acts.slice().sort(function(a,b){return a.tgl<b.tgl?1:a.tgl>b.tgl?-1:b.at-a.at}).slice(0,8);
+$('ak').innerHTML=ac.length?ac.map(function(a){return'<div class="tl"><b>'+esc(a.kat)+'</b> <span class="m">'+fd(a.tgl)+'</span><br>'+esc(a.desk)+'</div>'}).join(''):'<div class="c m">Belum ada aktivitas.</div>'}
+</script></body></html>

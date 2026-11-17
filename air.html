@@ -1,0 +1,23 @@
+<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kualitas air · HydroLog</title><link rel="stylesheet" href="style.css"></head>
+<body><main><h1>Kualitas air</h1>
+<form id="f" class="c"><h2 id="baru" style="margin-top:0">Catatan baru</h2>
+<div class="r2"><div><label for="tg">Tanggal</label><input id="tg" type="date" required></div><div><label for="ph">pH</label><input id="ph" type="number" step="0.1" min="0" max="14" inputmode="decimal"></div>
+<div><label for="pp">PPM</label><input id="pp" type="number" min="0" inputmode="numeric"></div><div><label for="su">Suhu air (°C)</label><input id="su" type="number" step="0.1" inputmode="decimal"></div>
+<div><label for="ec">EC (mS/cm), opsional</label><input id="ec" type="number" step="0.01" inputmode="decimal"></div><div><label for="vo">Volume (liter), opsional</label><input id="vo" type="number" min="0" inputmode="decimal"></div></div>
+<label for="ct">Catatan (tambah nutrisi, ganti air, dll)</label><textarea id="ct" rows="2"></textarea><button type="submit">Simpan catatan</button></form>
+<form id="th" class="c"><h2 style="margin-top:0">Batas target</h2><p class="m">Nilai awal hanya contoh. Sesuaikan dengan jenis tanaman dan fasenya.</p>
+<div class="r2"><div><label for="a1">pH minimum</label><input id="a1" type="number" step="0.1"></div><div><label for="a2">pH maksimum</label><input id="a2" type="number" step="0.1"></div><div><label for="a3">PPM minimum</label><input id="a3" type="number"></div><div><label for="a4">PPM maksimum</label><input id="a4" type="number"></div><div><label for="a5">Suhu air maksimum (°C)</label><input id="a5" type="number" step="0.1"></div></div><button class="l" type="submit">Simpan batas</button></form>
+<h2>Riwayat</h2><div class="r2"><input id="q" placeholder="Cari catatan"><button class="l" id="ex" type="button" style="margin:0">Unduh CSV</button></div>
+<div class="c t"><table><thead><tr><th>Tanggal</th><th>pH</th><th>PPM</th><th>°C</th><th>EC</th><th>Liter</th><th>Catatan</th><th></th></tr></thead><tbody id="tb"></tbody></table></div></main>
+<script src="app.js"></script><script>
+head('air');var d=need();if(d){tg.value=today();var T=d.th;[T.phMin,T.phMax,T.ppmMin,T.ppmMax,T.tMax].forEach(function(v,i){$('a'+(i+1)).value=v});
+function tb(){var q=$('q').value.toLowerCase(),w=d.water.slice().sort(function(a,b){return a.tgl<b.tgl?1:a.tgl>b.tgl?-1:b.at-a.at}).filter(function(x){return(x.tgl+' '+x.catatan).toLowerCase().indexOf(q)>-1});
+ $('tb').innerHTML=w.length?w.map(function(x){var a=peringatan(x,d.th);return'<tr><td>'+fd(x.tgl)+'</td><td'+(a.some(function(s){return s[0]==='p'})?' class="w"':'')+'>'+esc(x.ph)+'</td><td'+(a.some(function(s){return s[0]==='P'})?' class="w"':'')+'>'+esc(x.ppm)+'</td><td'+(a.some(function(s){return s[0]==='S'})?' class="w"':'')+'>'+esc(x.suhu)+'</td><td>'+esc(x.ec)+'</td><td>'+esc(x.vol)+'</td><td>'+esc(x.catatan)+'</td><td><button class="x" data-i="'+x.id+'">Hapus</button></td></tr>'}).join(''):'<tr><td colspan="8" class="m">Belum ada catatan.</td></tr>';
+ [].forEach.call(document.querySelectorAll('[data-i]'),function(b){b.onclick=function(){if(confirm('Hapus catatan ini?')){d.water=d.water.filter(function(x){return x.id!==b.dataset.i});save(d);tb()}}})}
+$('q').oninput=tb;tb();
+$('f').onsubmit=function(e){e.preventDefault();if(ph.value===''&&pp.value===''&&su.value===''){alert('Isi minimal satu pengukuran: pH, PPM, atau suhu.');return}
+ var w={id:uid(),tgl:tg.value,ph:ph.value,ppm:pp.value,suhu:su.value,ec:ec.value,vol:vo.value,catatan:ct.value.trim(),at:Date.now()};d.water.push(w);
+ addAct(d,'Pemeriksaan air','pH '+(w.ph||'-')+', PPM '+(w.ppm||'-')+', suhu '+(w.suhu||'-')+(w.catatan?'. '+w.catatan:''),w.tgl);save(d);var a=peringatan(w,d.th);if(a.length)alert('Peringatan:\n'+a.join('\n'));f.reset();tg.value=today();tb()};
+$('th').onsubmit=function(e){e.preventDefault();d.th={phMin:+a1.value,phMax:+a2.value,ppmMin:+a3.value,ppmMax:+a4.value,tMax:+a5.value};save(d);alert('Batas target disimpan.');tb()};
+$('ex').onclick=function(){csv('air-hydrolog.csv',[['Tanggal','pH','PPM','Suhu','EC','Volume','Catatan']].concat(d.water.map(function(x){return[x.tgl,x.ph,x.ppm,x.suhu,x.ec,x.vol,x.catatan]})))}}
+</script></body></html>

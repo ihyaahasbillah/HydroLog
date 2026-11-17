@@ -1,0 +1,15 @@
+<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Jurnal · HydroLog</title><link rel="stylesheet" href="style.css"></head>
+<body><main><h1>Jurnal harian</h1>
+<form id="f" class="c"><div class="r2"><div><label for="tg">Tanggal</label><input id="tg" type="date" required></div><div><label for="kt">Kegiatan</label><select id="kt"></select></div></div>
+<label for="ds">Deskripsi</label><textarea id="ds" rows="2" required></textarea><label for="rl">Tanaman atau kelompok terkait (opsional)</label><input id="rl" placeholder="B11 atau kelompok B"><button type="submit">Simpan kegiatan</button></form>
+<div class="r2"><select id="fk"></select><button class="l" id="ex" type="button" style="margin:0">Unduh CSV</button></div><h2>Linimasa</h2><div id="tl"></div></main>
+<script src="app.js"></script><script>
+head('jurnal');var d=need(),KG=['Tambah nutrisi','Ganti air','Pemeriksaan air','Perawatan pompa','Pemeriksaan tanaman','Pengendalian hama','Pembersihan','Pemangkasan','Pindah tanam','Panen','Lainnya'];
+if(d){tg.value=today();kt.innerHTML=KG.map(function(x){return'<option>'+x+'</option>'}).join('');fk.innerHTML='<option value="">Semua kegiatan</option>'+KG.map(function(x){return'<option>'+x+'</option>'}).join('');
+function tl(){var a=d.acts.slice().sort(function(a,b){return a.tgl<b.tgl?1:a.tgl>b.tgl?-1:b.at-a.at}).filter(function(x){return!fk.value||x.kat===fk.value});
+ $('tl').innerHTML=a.length?a.map(function(x){return'<div class="tl"><b>'+esc(x.kat)+'</b> <span class="m">'+fd(x.tgl)+(x.rel?' · '+esc(x.rel):'')+'</span> <button class="x" data-i="'+x.id+'">Hapus</button><br>'+esc(x.desk)+'</div>'}).join(''):'<div class="c m">Belum ada kegiatan.</div>';
+ [].forEach.call(document.querySelectorAll('[data-i]'),function(b){b.onclick=function(){if(confirm('Hapus kegiatan ini?')){d.acts=d.acts.filter(function(x){return x.id!==b.dataset.i});save(d);tl()}}})}
+fk.onchange=tl;tl();
+$('f').onsubmit=function(e){e.preventDefault();addAct(d,kt.value,ds.value.trim(),tg.value);d.acts[d.acts.length-1].rel=rl.value.trim();save(d);ds.value='';rl.value='';tl()};
+$('ex').onclick=function(){csv('jurnal-hydrolog.csv',[['Tanggal','Kegiatan','Deskripsi','Terkait']].concat(d.acts.map(function(x){return[x.tgl,x.kat,x.desk,x.rel||'']})))}}
+</script></body></html>

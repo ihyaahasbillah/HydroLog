@@ -1,0 +1,26 @@
+<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Peta tanaman · HydroLog</title><link rel="stylesheet" href="style.css"></head>
+<body><main><h1>Peta tanaman</h1>
+<p class="lg m"><span class="sehat"></span>Sehat<span class="waspada"></span>Waspada<span class="kritis"></span>Kritis<span class="dipanen"></span>Dipanen<span class="kosong"></span>Kosong</p>
+<div id="mp" class="c"></div><div id="pn"></div></main>
+<script src="app.js"></script><script>
+head('peta');var d=need(),sel=null,ST=['sehat','waspada','kritis','dipanen','kosong'],KT=['Pertumbuhan','Daun menguning','Layu','Hama atau penyakit','Akar bermasalah','Panen','Lainnya'];
+function peta(){$('mp').innerHTML=d.garden.groups.map(function(g){var h='<h2 style="margin-top:0">Kelompok '+esc(g.n)+'</h2><div class="mp" style="grid-template-columns:repeat('+g.c+',minmax(0,1fr))">';
+ for(var r=1;r<=g.r;r++)for(var c=1;c<=g.c;c++){var k=g.n+c+r;h+='<button type="button" class="'+d.plants[k].status+(k===sel?' sel':'')+'" data-k="'+k+'">'+k+'</button>'}return h+'</div>'}).join('');
+ [].forEach.call(document.querySelectorAll('[data-k]'),function(b){b.onclick=function(){sel=b.dataset.k;peta();panel();$('pn').scrollIntoView({behavior:'smooth'})}})}
+function panel(){if(!sel||!d.plants[sel]){$('pn').innerHTML='<div class="c m">Pilih satu titik tanam untuk melihat detail dan menambah catatan.</div>';return}
+ var p=d.plants[sel],o=d.obs.filter(function(x){return x.k===sel}).sort(function(a,b){return a.tgl<b.tgl?-1:a.tgl>b.tgl?1:a.at-b.at}),prev=null;
+ o.forEach(function(x){if(x.tinggi!==''){x.sel=prev===null?null:Math.round((x.tinggi-prev)*10)/10;prev=+x.tinggi}else x.sel=null});
+ var lt=o.filter(function(x){return x.tinggi!==''}).pop(),ld=o.filter(function(x){return x.daun!==''}).pop();
+ $('pn').innerHTML='<div class="c"><h2 style="margin-top:0">Tanaman '+sel+' <span class="'+p.status+'" style="color:#fff;padding:2px 10px;border-radius:99px;font-size:.8rem">'+p.status+'</span></h2>'
+ +'<p class="m">'+esc(d.garden.tanaman)+' · tanam '+fd(d.garden.tgl)+' · umur '+umur(d.garden.tgl)+' hari · tinggi terakhir '+(lt?lt.tinggi+' cm':'-')+' · daun terakhir '+(ld?ld.daun:'-')+'</p>'
+ +'<form id="of"><div class="r2"><div><label for="ot">Tanggal</label><input id="ot" type="date" value="'+today()+'" required></div><div><label for="ok">Kategori</label><select id="ok">'+KT.map(function(x){return'<option>'+x+'</option>'}).join('')+'</select></div>'
+ +'<div><label for="oh">Tinggi (cm)</label><input id="oh" type="number" step="0.1" min="0" inputmode="decimal"></div><div><label for="ol">Jumlah daun</label><input id="ol" type="number" min="0" inputmode="numeric"></div>'
+ +'<div><label for="os">Tingkat keparahan</label><select id="os"><option>Tidak ada</option><option>Ringan</option><option>Sedang</option><option>Berat</option></select></div><div><label for="oz">Status tanaman</label><select id="oz">'+ST.map(function(x){return'<option'+(x===p.status?' selected':'')+'>'+x+'</option>'}).join('')+'</select></div></div>'
+ +'<label for="od">Deskripsi</label><textarea id="od" rows="2" placeholder="Contoh: daun bawah menguning"></textarea><label for="oa">Tindakan</label><input id="oa"><label for="of2">Tindak lanjut</label><select id="of2"><option>Selesai</option><option>Perlu dipantau</option><option>Belum ditangani</option></select><button type="submit">Simpan catatan</button></form></div>'
+ +'<h2>Riwayat '+sel+'</h2>'+(o.length?o.slice().reverse().map(function(x){return'<div class="tl"><b>'+esc(x.kat)+'</b> <span class="m">'+fd(x.tgl)+(x.sev!=='Tidak ada'?' · '+esc(x.sev):'')+' · '+esc(x.fu)+'</span> <button class="x" data-o="'+x.id+'">Hapus</button><br>'
+ +(x.tinggi!==''?'Tinggi '+esc(x.tinggi)+' cm'+(x.sel!==null?' ('+(x.sel>=0?'+':'')+x.sel+' cm)':'')+' · ':'')+(x.daun!==''?esc(x.daun)+' daun · ':'')+esc(x.desk)+(x.tind?'<br>Tindakan: '+esc(x.tind):'')+'</div>'}).join(''):'<div class="c m">Belum ada catatan untuk tanaman ini.</div>');
+ $('of').onsubmit=function(e){e.preventDefault();var x={id:uid(),k:sel,tgl:ot.value,kat:ok.value,tinggi:oh.value,daun:ol.value,sev:os.value,desk:od.value.trim(),tind:oa.value.trim(),fu:$('of2').value,at:Date.now()};
+  d.obs.push(x);p.status=oz.value;addAct(d,'Pemeriksaan tanaman',sel+': '+x.kat+(x.desk?' – '+x.desk:''),x.tgl);save(d);peta();panel()};
+ [].forEach.call(document.querySelectorAll('[data-o]'),function(b){b.onclick=function(){if(confirm('Hapus catatan ini?')){d.obs=d.obs.filter(function(x){return x.id!==b.dataset.o});save(d);panel()}}})}
+if(d){peta();panel()}
+</script></body></html>

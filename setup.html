@@ -1,0 +1,23 @@
+<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Atur kebun · HydroLog</title><link rel="stylesheet" href="style.css"></head>
+<body><main><h1>Atur kebun</h1>
+<form id="f" class="c">
+<label for="nm">Nama kebun</label><input id="nm" required placeholder="Greenhouse 1">
+<div class="r2"><div><label for="tn">Jenis tanaman</label><input id="tn" required></div><div><label for="tg">Tanggal tanam</label><input id="tg" type="date" required></div></div>
+<div class="r2"><div><label for="ss">Sistem hidroponik</label><select id="ss"><option>NFT</option><option>DFT</option><option>Wick</option><option>Drip</option><option>Lainnya</option></select></div><div><label for="md">Media tanam</label><input id="md" placeholder="Rockwool"></div></div>
+<h2>Kelompok tanaman</h2><p class="m">Nama kelompok dipakai di kode tanaman: [Kelompok][Kolom][Baris], misalnya B11 = kelompok B, kolom 1, baris 1.</p>
+<div id="gs"></div><button type="button" class="l" id="add">Tambah kelompok</button>
+<p><b id="tot"></b></p><button type="submit">Simpan dan mulai</button></form></main>
+<script src="app.js"></script><script>
+var gs=$('gs');
+function addG(n,c,r){gs.insertAdjacentHTML('beforeend','<div class="r3"><div><label>Nama</label><input class="gn" value="'+n+'" maxlength="3" required></div><div><label>Kolom</label><input class="gc" type="number" min="1" max="20" value="'+c+'"></div><div><label>Baris</label><input class="gr" type="number" min="1" max="20" value="'+r+'"></div></div>');tot()}
+function rows(){return[].slice.call(gs.children).map(function(x){return{n:x.querySelector('.gn').value.trim().toUpperCase(),c:+x.querySelector('.gc').value||0,r:+x.querySelector('.gr').value||0}})}
+function tot(){$('tot').textContent='Total titik tanam: '+rows().reduce(function(a,g){return a+g.c*g.r},0)}
+gs.oninput=tot;$('add').onclick=function(){addG(String.fromCharCode(65+gs.children.length),5,4)};
+addG('A',5,4);$('tg').value=today();$('tn').value=new URLSearchParams(location.search).get('t')||'';
+$('f').onsubmit=function(e){e.preventDefault();var d=load(),g=rows(),seen={};
+ for(var i=0;i<g.length;i++){if(!/^[A-Z]{1,3}$/.test(g[i].n)||seen[g[i].n]||g[i].c<1||g[i].r<1){alert('Nama kelompok harus berupa 1–3 huruf, tidak boleh kembar, dan kolom/baris minimal 1.');return}seen[g[i].n]=1}
+ if(d.garden&&!confirm('Kebun lama beserta peta tanamannya akan diganti. Catatan air dan jurnal tetap ada. Lanjutkan?'))return;
+ d.garden={id:uid(),nama:nm.value.trim(),tanaman:tn.value.trim(),tgl:tg.value,sistem:ss.value,media:md.value.trim(),groups:g};d.plants={};d.obs=[];
+ g.forEach(function(x){for(var c=1;c<=x.c;c++)for(var r=1;r<=x.r;r++)d.plants[x.n+c+r]={status:'sehat',g:x.n,c:c,r:r}});
+ addAct(d,'Lainnya','Kebun "'+d.garden.nama+'" dibuat');save(d);location.href='dashboard.html'};
+</script></body></html>
